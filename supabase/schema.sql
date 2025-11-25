@@ -1,4 +1,4 @@
--- Level-Up IRL base schema
+-- Hero Arc base schema
 create extension if not exists "uuid-ossp";
 
 create table if not exists public.users (

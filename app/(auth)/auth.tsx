@@ -40,7 +40,7 @@ export default function AuthScreen() {
       if (mode === 'signin') {
         return signInWithEmail({ email, password });
       }
-      if (!handle) throw new Error('Pick a hunter handle.');
+      if (!handle) throw new Error('Pick a hero alias.');
       return signUpWithProfile({ email, password, handle, goal });
     },
     onSuccess: () => {
@@ -67,23 +67,23 @@ export default function AuthScreen() {
           behavior={Platform.select({ ios: 'padding', android: undefined })}
           style={styles.stack}
         >
-          <Text style={styles.kicker}>Level-Up IRL</Text>
+        <Text style={styles.kicker}>Hero Arc</Text>
           <Text style={styles.title}>Solo-level your real life grind.</Text>
           <View style={styles.modeSwitch}>
-            <ModeToggle label="Create Hunter" active={mode === 'signup'} onPress={() => setMode('signup')} />
+          <ModeToggle label="Create Hero" active={mode === 'signup'} onPress={() => setMode('signup')} />
             <ModeToggle label="Sign In" active={mode === 'signin'} onPress={() => setMode('signin')} />
           </View>
           <View style={styles.form}>
-            <Label>System email</Label>
-            <Input placeholder="you@hunter.com" keyboardType="email-address" value={email} onChangeText={setEmail} />
+          <Label>Registry email</Label>
+          <Input placeholder="you@heroarc.com" keyboardType="email-address" value={email} onChangeText={setEmail} />
 
             <Label>Secret phrase</Label>
             <Input placeholder="••••••••" secureTextEntry value={password} onChangeText={setPassword} />
 
             {mode === 'signup' && (
               <>
-                <Label>Hunter handle</Label>
-                <Input placeholder="ShadowMonarch" value={handle} onChangeText={setHandle} autoCapitalize="none" />
+              <Label>Hero alias</Label>
+              <Input placeholder="ArcBreaker" value={handle} onChangeText={setHandle} autoCapitalize="none" />
 
                 <Label>Primary goal</Label>
                 <View style={styles.goalGrid}>
@@ -103,32 +103,28 @@ export default function AuthScreen() {
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <Pressable
-            style={[styles.cta, disableSubmit && styles.ctaDisabled]}
-            disabled={disableSubmit}
-            onPress={() => authMutation.mutate()}
-          >
-            <Text style={styles.ctaLabel}>
-              {authMutation.isPending ? 'Booting System...' : mode === 'signup' ? 'Activate System' : 'Enter HQ'}
-            </Text>
-          </Pressable>
+        <Pressable
+          style={[styles.cta, disableSubmit && styles.ctaDisabled]}
+          disabled={disableSubmit}
+          onPress={() => authMutation.mutate()}
+        >
+          <Text style={styles.ctaLabel}>
+            {authMutation.isPending ? 'Linking comms...' : mode === 'signup' ? 'Join Hero Arc' : 'Return to HQ'}
+          </Text>
+        </Pressable>
 
-          {activated && (
-            <SystemCard
-              title="System online!"
-              subtitle="Rank: E-Rank • Level 1 • XP: 0"
-              accent={palette.neonSoft}
-            >
-              <Text style={styles.cardText}>Welcome to your training arc. Tap “Enter HQ” once the portal opens.</Text>
-            </SystemCard>
-          )}
+        {activated && (
+          <SystemCard title="Hero profile live!" subtitle="Rank: E-Rank • Level 1 • XP: 0" accent={palette.neonSoft}>
+            <Text style={styles.cardText}>Welcome to your training arc. Tap “Return to HQ” once the portal opens.</Text>
+          </SystemCard>
+        )}
         </KeyboardAvoidingView>
       </ScrollView>
       {authMutation.isPending && (
         <View style={styles.loadingOverlay} pointerEvents="none">
           <ActivityIndicator color={palette.neon} size="large" />
           <Text style={styles.loadingTitle}>Initializing greatness...</Text>
-          <Text style={styles.loadingSubtitle}>Syncing with the System</Text>
+          <Text style={styles.loadingSubtitle}>Linking to Hero Arc</Text>
         </View>
       )}
     </>

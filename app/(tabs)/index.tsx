@@ -23,7 +23,7 @@ export default function HomeScreen() {
   const workoutsQuery = useRecentWorkouts(userId);
 
   if (profileQuery.isLoading || statsQuery.isLoading) {
-    return <LoadingState label="Syncing hunter data..." />;
+    return <LoadingState label="Syncing hero data..." />;
   }
 
   const profile = profileQuery.data;
@@ -35,9 +35,9 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.kicker}>System HUD</Text>
+      <Text style={styles.kicker}>Hero HQ</Text>
       <Text style={styles.hero}>
-        Hunter {profile?.handle ?? '???'}
+        Hero {profile?.handle ?? '???'}
         {'\n'}
         <Text style={styles.goal}>{profile?.goal}</Text>
       </Text>

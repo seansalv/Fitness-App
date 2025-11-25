@@ -50,7 +50,7 @@ export const RankBanner = ({ previousRank, nextRank, visible }: Props) => {
     <Animated.View style={[styles.banner, { opacity, transform: [{ translateY }] }]}>
       <Text style={styles.title}>Rank Up!</Text>
       <Text style={styles.body}>
-        You evolved from {previousRank}-Rank to {nextRank}-Rank hunter.
+        You evolved from {previousRank}-Rank to {nextRank}-Rank hero.
       </Text>
     </Animated.View>
   );

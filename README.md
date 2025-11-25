@@ -1,11 +1,11 @@
-# Level-Up IRL
+# Hero Arc
 
-Level-Up IRL is an anime-inspired fitness companion that reframes every workout as an RPG quest. Users start as E-rank hunters, earn XP from real sessions, and climb toward SSS-rank through streaks and quests. The goal is to give Solo Leveling vibes while staying lightweight enough for daily use.
+Hero Arc is an anime-inspired fitness companion that reframes every workout as an RPG quest. Users start as E-rank heroes, earn XP from real sessions, and climb toward SSS-rank through streaks and quests. The goal is to give Solo Leveling vibes while staying lightweight enough for daily use.
 
 ## Why it matters
 
 - **Motivation over metrics:** Instead of spreadsheets, the app focuses on streaks, rank evolutions, and narrative copy that keep gym beginners coming back.
-- **Frictionless onboarding:** New hunters pick a handle + goal, see the “System online” animation, and land in the HUD already primed to log a quest.
+- **Frictionless onboarding:** New heroes pick an alias + goal, see the hero console boot animation, and land in the HUD already primed to log a quest.
 - **Deterministic progression:** XP, levels, ranks, and streaks are all derived from a single config so tuning the meta-game is trivial.
 - **Device-native feel:** Built entirely with Expo + React Native + Supabase, so it runs on iOS/Android without a custom backend to maintain.
 
@@ -13,8 +13,8 @@ Level-Up IRL is an anime-inspired fitness companion that reframes every workout 
 
 | Flow | Experience |
 | ---- | ---------- |
-| Onboarding | Email/password auth, anime handle selection, and a “System activated” status card. |
-| System HUD | Shows current rank, level, streak, latest quests, and a big “Start Quest” CTA. |
+| Onboarding | Email/password auth, hero alias selection, and a “Hero profile live” status card. |
+| Hero HQ | Shows current rank, level, streak, latest quests, and a big “Start Quest” CTA. |
 | Quest modal | Users pick quest type, intensity, and duration; XP + rank banners fire on completion. |
 | Status screen | RPG-style panel summarizing rank, XP, streak, total quests, and a 7-day activity strip. |
 | Reminders | Local-only notification toggle to nudge a “training arc” ping each evening. |
@@ -59,4 +59,4 @@ All of the above lives in `src/config/progression.ts`, making it easy to iterate
    ```bash
    npx expo start
    ```
-6. Load the app in Expo Go / simulator and create a hunter. Quest logging, streaks, and reminders work on device/emulator as long as Supabase creds are set.
+6. Load the app in Expo Go / simulator and create a hero. Quest logging, streaks, and reminders work on device/emulator as long as Supabase creds are set.
