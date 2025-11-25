@@ -21,13 +21,8 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="index" />
-          <Stack.Screen
-            name="onboarding"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/auth" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
             name="quest"
