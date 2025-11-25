@@ -1,0 +1,15 @@
+{
+  "name": "@hero-arc/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared types and utilities for Hero Arc Expo + Next.js apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
