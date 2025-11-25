@@ -1,98 +1,194 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { LoadingState } from '@/src/components/LoadingState';
+import { SystemCard } from '@/src/components/SystemCard';
+import { useProfile } from '@/src/hooks/useProfile';
+import { useUserStats } from '@/src/hooks/useUserStats';
+import { useRecentWorkouts } from '@/src/hooks/useWorkouts';
+import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
+import { palette } from '@/src/theme/palette';
+import { QUEST_TYPES, INTENSITY_LABELS } from '@/src/config/progression';
+
+dayjs.extend(relativeTime);
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const { session } = useSupabaseSession();
+  const userId = session?.user?.id;
+  const profileQuery = useProfile(userId);
+  const statsQuery = useUserStats(userId);
+  const workoutsQuery = useRecentWorkouts(userId);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  if (profileQuery.isLoading || statsQuery.isLoading) {
+    return <LoadingState label="Syncing hunter data..." />;
+  }
+
+  const profile = profileQuery.data;
+  const stats = statsQuery.data;
+  const workouts = workoutsQuery.data ?? [];
+  const loadingQuests = workoutsQuery.isLoading;
+
+  const lastQuest = workouts[0];
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.kicker}>System HUD</Text>
+      <Text style={styles.hero}>
+        Hunter {profile?.handle ?? '???'}
+        {'\n'}
+        <Text style={styles.goal}>{profile?.goal}</Text>
+      </Text>
+
+      <SystemCard title={`Rank ${stats?.rank}`} subtitle={`Level ${stats?.level} • ${stats?.total_xp} XP`}>
+        <Text style={styles.cardBody}>
+          {stats?.total_xp ? 'Keep stacking quests to evolve.' : 'Complete your first quest to earn XP.'}
+        </Text>
+      </SystemCard>
+
+      <Pressable style={styles.cta} onPress={() => router.push('/quest')}>
+        <Text style={styles.ctaLabel}>Start Quest</Text>
+        <Text style={styles.ctaHint}>Log a workout and earn XP</Text>
+      </Pressable>
+
+      <SystemCard title="Streak monitor" subtitle={`Current streak: ${stats?.streak_days ?? 0} days`}>
+        <Text style={styles.cardBody}>
+          {stats?.last_activity_date
+            ? `Last quest: ${dayjs(stats.last_activity_date).format('MMM D')}`
+            : 'No quests logged yet.'}
+        </Text>
+      </SystemCard>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Recent quests</Text>
+        <Text style={styles.sectionCount}>{workouts.length} logged this week</Text>
+      </View>
+      <View style={styles.list}>
+        {loadingQuests && <Text style={styles.empty}>Fetching quest log...</Text>}
+        {!loadingQuests && workouts.length === 0 && (
+          <Text style={styles.empty}>No quests logged yet. Start one now.</Text>
+        )}
+        {workouts.slice(0, 5).map((quest) => (
+          <View key={quest.id} style={styles.questRow}>
+            <View>
+              <Text style={styles.questTitle}>{QUEST_TYPES[quest.type]}</Text>
+              <Text style={styles.questMeta}>
+                {INTENSITY_LABELS[quest.intensity]} • {quest.duration_minutes} min •{' '}
+                {dayjs(quest.timestamp).fromNow()}
+              </Text>
+            </View>
+            <Text style={styles.questXp}>+{quest.xp_awarded} XP</Text>
+          </View>
+        ))}
+      </View>
+
+      {lastQuest && (
+        <SystemCard title="Latest quest" subtitle={dayjs(lastQuest.timestamp).format('MMM D, h:mma')}>
+          <Text style={styles.cardBody}>
+            {QUEST_TYPES[lastQuest.type]} • {INTENSITY_LABELS[lastQuest.intensity]} • {lastQuest.duration_minutes} min
+          </Text>
+        </SystemCard>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: palette.background,
+  },
+  content: {
+    padding: 20,
+    gap: 16,
+    paddingBottom: 80,
+  },
+  kicker: {
+    color: palette.neonSoft,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontSize: 12,
+  },
+  hero: {
+    color: palette.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
+    lineHeight: 34,
+  },
+  goal: {
+    color: palette.textSecondary,
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  cardBody: {
+    color: palette.textSecondary,
+    fontSize: 14,
+  },
+  cta: {
+    borderRadius: 18,
+    padding: 20,
+    backgroundColor: palette.neon,
+    shadowColor: palette.neon,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+  },
+  ctaLabel: {
+    color: '#050505',
+    fontSize: 20,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  ctaHint: {
+    color: '#1a1231',
+    marginTop: 4,
+  },
+  sectionHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    marginTop: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  sectionTitle: {
+    color: palette.textPrimary,
+    fontSize: 18,
+    fontWeight: '600',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  sectionCount: {
+    color: palette.textSecondary,
+    fontSize: 13,
+  },
+  list: {
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: 18,
+    backgroundColor: palette.surface,
+  },
+  empty: {
+    color: palette.textSecondary,
+    padding: 16,
+    textAlign: 'center',
+  },
+  questRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1f3d',
+  },
+  questTitle: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  questMeta: {
+    color: palette.textSecondary,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  questXp: {
+    color: palette.neon,
+    fontWeight: '700',
   },
 });

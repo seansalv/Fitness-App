@@ -1,33 +1,45 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Redirect, Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { palette } from '@/src/theme/palette';
+import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
+import { LoadingState } from '@/src/components/LoadingState';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { session, isLoading } = useSupabaseSession();
+
+  if (isLoading) {
+    return <LoadingState label="Syncing system..." />;
+  }
+
+  if (!session) {
+    return <Redirect href="/(auth)/auth" />;
+  }
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: palette.neon,
+        tabBarInactiveTintColor: palette.textSecondary,
+        tabBarStyle: {
+          backgroundColor: palette.surface,
+          borderTopColor: palette.border,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'System',
+          tabBarIcon: ({ color }) => <Ionicons name="flash-outline" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="status"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Status',
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart-outline" size={20} color={color} />,
         }}
       />
     </Tabs>
