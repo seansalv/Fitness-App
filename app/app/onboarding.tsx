@@ -444,10 +444,14 @@ export default function OnboardingScreen() {
           <Text style={styles.summaryHeading}>BMI Index</Text>
           <Text style={styles.bmiValue}>{bmi ?? '—'}</Text>
           <Text style={[styles.bmiLabel, { color: bmiColor(bmi) }]}>{bmiLabel}</Text>
-          <View style={styles.bmiSegmentBar}>
-            {BMI_SEGMENTS.map((segment) => (
-              <View key={segment.label} style={[styles.bmiSegment, { backgroundColor: segment.color }]} />
-            ))}
+          <View style={styles.bmiSegmentWrapper}>
+            <LinearGradient
+              colors={BMI_GRADIENT_COLORS}
+              locations={BMI_GRADIENT_LOCATIONS}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.bmiSegmentBar}
+            />
             {bmi && <View style={[styles.bmiPointer, { left: bmiPointerPosition(bmi) }]} />}
           </View>
           <View style={styles.bmiLegend}>
@@ -759,16 +763,17 @@ const styles = StyleSheet.create({
     color: palette.textSecondary,
     fontSize: 10,
   },
-  bmiSegmentBar: {
-    flexDirection: 'row',
-    height: 12,
-    borderRadius: 999,
-    overflow: 'hidden',
+  bmiSegmentWrapper: {
     marginTop: 4,
     marginBottom: 4,
+    position: 'relative',
+    height: 12,
   },
-  bmiSegment: {
-    flex: 1,
+  bmiSegmentBar: {
+    height: 12,
+    width: '100%',
+    borderRadius: 999,
+    overflow: 'hidden',
   },
   bmiPointer: {
     position: 'absolute',
@@ -776,6 +781,8 @@ const styles = StyleSheet.create({
     width: 2,
     height: 20,
     backgroundColor: '#fff',
+    borderRadius: 999,
+    marginLeft: -1,
   },
   summaryAdvice: {
     color: palette.textSecondary,
@@ -912,6 +919,10 @@ const BMI_SEGMENTS = [
   { label: 'Overweight', color: '#f2c94c', min: 25, max: 30 },
   { label: 'Obese', color: '#ff8a65', min: 30, max: 40 },
 ];
+const BMI_GRADIENT_COLORS = ['#3f9dff', '#49dd75', '#f2c94c', '#ff8a65'];
+const BMI_GRADIENT_LOCATIONS = [0, 0.33, 0.66, 1];
+const BMI_RANGE_MIN = BMI_SEGMENTS[0].min;
+const BMI_RANGE_MAX = BMI_SEGMENTS[BMI_SEGMENTS.length - 1].max;
 
 const lbsToKg = (value: number) => Math.max(30, Math.round(value / 2.20462));
 const kgToLbs = (value: number) => Math.max(60, Math.round(value * 2.20462));
@@ -1019,15 +1030,16 @@ const describeBmi = (bmi: number) => {
 
 const bmiColor = (bmi: number | null) => {
   if (bmi == null) return '#fff';
-  const segment = BMI_SEGMENTS.find((seg) => bmi >= seg.min && bmi < seg.max);
+  const segment = BMI_SEGMENTS.find((seg, idx) => {
+    const isLast = idx === BMI_SEGMENTS.length - 1;
+    return bmi >= seg.min && (isLast ? bmi <= seg.max : bmi < seg.max);
+  });
   return segment ? segment.color : '#fff';
 };
 
 const bmiPointerPosition = (bmi: number) => {
-  const min = 15;
-  const max = 40;
-  const clamped = Math.max(min, Math.min(max, bmi));
-  const percent = ((clamped - min) / (max - min)) * 100;
+  const clamped = Math.max(BMI_RANGE_MIN, Math.min(BMI_RANGE_MAX, bmi));
+  const percent = ((clamped - BMI_RANGE_MIN) / (BMI_RANGE_MAX - BMI_RANGE_MIN)) * 100;
   return `${percent}%`;
 };
 
