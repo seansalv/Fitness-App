@@ -16,9 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { GOALS } from '@/src/config/progression';
-import { SystemCard } from '@/src/components/SystemCard';
 import { signInWithEmail, signUpWithProfile } from '@/src/services/api';
-import { palette } from '@/src/theme/palette';
 import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
 
 type Mode = 'signin' | 'signup';
@@ -32,7 +30,6 @@ export default function AuthScreen() {
   const [handle, setHandle] = useState('');
   const [goal, setGoal] = useState<typeof GOALS[number]>(GOALS[0]);
   const [error, setError] = useState('');
-  const [activated, setActivated] = useState(false);
 
   const authMutation = useMutation({
     mutationFn: async () => {
@@ -44,9 +41,7 @@ export default function AuthScreen() {
       return signUpWithProfile({ email, password, handle, goal });
     },
     onSuccess: () => {
-      if (mode === 'signup') {
-        setActivated(true);
-      }
+      // User will be redirected via useEffect when session is available
     },
     onError: (mutationError: Error) => setError(mutationError.message),
   });
@@ -61,102 +56,85 @@ export default function AuthScreen() {
   }, [session, authMutation.isPending, router]);
 
   return (
-    <>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <KeyboardAvoidingView
-          behavior={Platform.select({ ios: 'padding', android: undefined })}
-          style={styles.shell}
-        >
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <Text style={styles.kicker}>Hero Arc</Text>
-              <Text style={styles.title}>Solo-level your real life grind.</Text>
-            </View>
+    <View style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.select({ ios: 'padding', android: undefined })}
+        style={styles.keyboardView}
+      >
+        {/* Toggle */}
+        <View style={styles.toggleContainer}>
+          <View style={styles.toggleWrapper}>
+            <Pressable
+              style={[styles.toggleButton, mode === 'signup' && styles.toggleButtonActive]}
+              onPress={() => setMode('signup')}
+            >
+              <Text style={mode === 'signup' ? styles.toggleTextActive : styles.toggleText}>Create hero</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.toggleButton, mode === 'signin' && styles.toggleButtonActive]}
+              onPress={() => setMode('signin')}
+            >
+              <Text style={mode === 'signin' ? styles.toggleTextActive : styles.toggleText}>Login</Text>
+            </Pressable>
+          </View>
+        </View>
 
-            <View style={styles.modeSwitch}>
-              <ModeToggle label="Create hero" active={mode === 'signup'} onPress={() => setMode('signup')} />
-              <ModeToggle label="Return to HQ" active={mode === 'signin'} onPress={() => setMode('signin')} />
-            </View>
-
-            <View style={styles.form}>
-              {mode === 'signup' && (
-                <View style={styles.field}>
-                  <Label>Hero alias</Label>
-                  <Input placeholder="ArcBreaker" value={handle} onChangeText={setHandle} autoCapitalize="none" />
-                </View>
-              )}
-
+        {/* Form */}
+        <ScrollView style={styles.formContainer} contentContainerStyle={styles.formContent}>
+          <View style={styles.form}>
+            {mode === 'signup' && (
               <View style={styles.field}>
-                <Label>Email</Label>
+                <Text style={styles.label}>Hero alias</Text>
                 <Input
-                  placeholder="hero@example.com"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
+                  placeholder="What should we call you?"
+                  value={handle}
+                  onChangeText={setHandle}
+                  autoCapitalize="none"
                 />
               </View>
+            )}
 
-              <View style={styles.field}>
-                <Label>Password</Label>
-                <Input placeholder="••••••••" secureTextEntry value={password} onChangeText={setPassword} />
-              </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Email</Text>
+              <Input
+                placeholder="hero@example.com"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
 
-              {mode === 'signup' && (
-                <View style={styles.field}>
-                  <Label>Primary goal</Label>
-                  <View style={styles.goalGrid}>
-                    {GOALS.map((option) => (
-                      <Pressable
-                        key={option}
-                        onPress={() => setGoal(option)}
-                        style={[styles.goalChip, goal === option && styles.goalChipActive]}
-                      >
-                        <Text style={goal === option ? styles.goalChipActiveText : styles.goalChipText}>{option}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
-              )}
+            <View style={styles.field}>
+              <Text style={styles.label}>Password</Text>
+              <Input placeholder="••••••••" secureTextEntry value={password} onChangeText={setPassword} />
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <Pressable
-              style={[styles.cta, disableSubmit && styles.ctaDisabled]}
+              style={[styles.submitButton, disableSubmit && styles.submitButtonDisabled]}
               disabled={disableSubmit}
               onPress={() => authMutation.mutate()}
             >
-              <Text style={styles.ctaLabel}>
-                {authMutation.isPending ? 'Syncing with HQ...' : mode === 'signup' ? 'Create hero' : 'Sign in'}
-              </Text>
+              {authMutation.isPending ? (
+                <View style={styles.loadingButtonContent}>
+                  <ActivityIndicator size="small" color="#ffffff" />
+                  <Text style={styles.submitButtonText}>Syncing with HQ...</Text>
+                </View>
+              ) : (
+                <Text style={styles.submitButtonText}>{mode === 'signup' ? 'Create hero' : 'Sign in'}</Text>
+              )}
             </Pressable>
           </View>
-
-          {activated && (
-            <SystemCard title="Hero profile live!" subtitle="Rank: E-Rank • Level 1 • XP: 0" accent={palette.neonSoft}>
-              <Text style={styles.cardText}>
-                Welcome to your training arc. Tap “Return to HQ” once the portal opens.
-              </Text>
-            </SystemCard>
-          )}
-        </KeyboardAvoidingView>
-      </ScrollView>
-      {authMutation.isPending && (
-        <View style={styles.loadingOverlay} pointerEvents="none">
-          <ActivityIndicator color={palette.neon} size="large" />
-          <Text style={styles.loadingTitle}>Initializing greatness...</Text>
-          <Text style={styles.loadingSubtitle}>Linking to Hero Arc</Text>
-        </View>
-      )}
-    </>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
-const Label = ({ children }: { children: string }) => <Text style={styles.label}>{children}</Text>;
-
 const Input = (props: TextInputProps) => (
   <TextInput
-    placeholderTextColor="#a0a3b1"
+    placeholderTextColor="#9ca3af"
     style={styles.input}
     autoCapitalize="none"
     autoCorrect={false}
@@ -164,174 +142,105 @@ const Input = (props: TextInputProps) => (
   />
 );
 
-const ModeToggle = ({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) => (
-  <Pressable style={[styles.mode, active && styles.modeActive]} onPress={onPress}>
-    <Text style={active ? styles.modeLabelActive : styles.modeLabel}>{label}</Text>
-  </Pressable>
-);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
-  },
-  content: {
-    padding: 24,
-  },
-  shell: {
-    gap: 16,
-  },
-  card: {
     backgroundColor: '#ffffff',
-    borderRadius: 32,
-    padding: 24,
-    gap: 16,
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 6,
   },
-  header: {
-    gap: 4,
-  },
-  kicker: {
-    color: palette.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    fontSize: 12,
-  },
-  title: {
-    color: palette.textPrimary,
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  modeSwitch: {
-    flexDirection: 'row',
-    backgroundColor: palette.muted,
-    padding: 4,
-    borderRadius: 16,
-    gap: 4,
-  },
-  mode: {
+  keyboardView: {
     flex: 1,
+  },
+  toggleContainer: {
+    padding: 24,
+    paddingTop: 56,
+    paddingBottom: 0,
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
     borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  toggleButton: {
+    flex: 1,
     paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  modeActive: {
+  toggleButtonActive: {
     backgroundColor: '#ffffff',
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  modeLabel: {
-    color: palette.textSecondary,
+  toggleText: {
+    color: '#6b7280',
+    fontSize: 16,
     fontWeight: '500',
   },
-  modeLabelActive: {
-    color: palette.textPrimary,
-    fontWeight: '600',
+  toggleTextActive: {
+    color: '#111827',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  formContainer: {
+    flex: 1,
+  },
+  formContent: {
+    padding: 24,
+    paddingTop: 16,
   },
   form: {
-    gap: 12,
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
+    gap: 20,
   },
   field: {
-    gap: 6,
+    gap: 8,
   },
   label: {
-    color: palette.textSecondary,
+    color: '#6b7280',
     fontSize: 14,
   },
   input: {
     borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: 14,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: palette.textPrimary,
-    backgroundColor: palette.muted,
-    fontSize: 16,
-  },
-  goalGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  goalChip: {
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#111827',
     backgroundColor: '#ffffff',
-  },
-  goalChipActive: {
-    borderColor: palette.neon,
-    backgroundColor: '#eef2ff',
-  },
-  goalChipText: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
-  goalChipActiveText: {
-    color: palette.textPrimary,
-    fontWeight: '600',
-  },
-  cta: {
-    marginTop: 8,
-    borderRadius: 16,
-    backgroundColor: palette.neon,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: palette.neon,
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-  },
-  ctaDisabled: {
-    opacity: 0.6,
-  },
-  ctaLabel: {
-    color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
   },
   error: {
-    color: palette.danger,
+    color: '#dc2626',
+    fontSize: 14,
     textAlign: 'center',
   },
-  cardText: {
-    color: palette.textPrimary,
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(3, 2, 19, 0.72)',
+  submitButton: {
+    backgroundColor: '#2563eb',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    padding: 24,
+    marginTop: 8,
   },
-  loadingTitle: {
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  loadingButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  submitButtonText: {
     color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  loadingSubtitle: {
-    color: palette.textSecondary,
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

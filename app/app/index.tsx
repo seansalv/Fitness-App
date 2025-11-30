@@ -2,17 +2,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Sparkles, Sword } from 'lucide-react-native';
-import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { LoadingState } from '@/src/components/LoadingState';
 import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
-import { palette } from '@/src/theme/palette';
 
 export default function Index() {
   const router = useRouter();
   const { session, isLoading } = useSupabaseSession();
-  const [showInvite, setShowInvite] = useState(false);
 
   if (isLoading) {
     return <LoadingState />;
@@ -66,7 +63,7 @@ export default function Index() {
 
         {/* Actions */}
         <View style={styles.actions}>
-          <Pressable style={styles.primaryCta} onPress={() => setShowInvite(true)}>
+          <Pressable style={styles.primaryCta} onPress={() => router.push('/onboarding')}>
             <Text style={styles.primaryCtaLabel}>Begin training</Text>
           </Pressable>
           <Pressable style={styles.secondaryCta} onPress={() => router.push('/(auth)/auth')}>
@@ -74,28 +71,6 @@ export default function Index() {
           </Pressable>
         </View>
       </View>
-      {showInvite && (
-        <View style={styles.inviteOverlay}>
-          <View style={styles.inviteCard}>
-            <View style={styles.inviteBadge}>
-              <Text style={styles.inviteBadgeText}>!</Text>
-            </View>
-            <Text style={styles.inviteTitle}>Hero Notification</Text>
-            <Text style={styles.inviteBody}>
-              You’ve been granted access to Hero Arc. Accept the call and start your awakening?
-            </Text>
-            <Pressable
-              style={styles.inviteButton}
-              onPress={() => {
-                setShowInvite(false);
-                router.push('/onboarding');
-              }}
-            >
-              <Text style={styles.inviteButtonLabel}>Accept</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
     </LinearGradient>
   );
 }
@@ -205,66 +180,6 @@ const styles = StyleSheet.create({
     color: '#2563eb',
     fontSize: 16,
     fontWeight: '500',
-  },
-  inviteOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(3, 2, 19, 0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  inviteCard: {
-    width: '100%',
-    borderRadius: 24,
-    padding: 24,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: palette.border,
-    gap: 12,
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-  },
-  inviteBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: palette.neon,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  inviteBadgeText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  inviteTitle: {
-    textAlign: 'center',
-    color: palette.textPrimary,
-    fontWeight: '700',
-    fontSize: 18,
-  },
-  inviteBody: {
-    color: palette.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  inviteButton: {
-    marginTop: 4,
-    borderRadius: 16,
-    paddingVertical: 12,
-    backgroundColor: palette.neon,
-  },
-  inviteButtonLabel: {
-    textAlign: 'center',
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 16,
   },
 });
 
