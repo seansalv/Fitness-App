@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 
 import { LoadingState } from '@/src/components/LoadingState';
@@ -22,25 +22,31 @@ export default function Index() {
   }
 
   return (
-    <LinearGradient colors={['#03050C', '#071833', '#02040B']} style={styles.container}>
-      <ImageBackground
-        source={require('@/assets/images/hero-bg.png')}
-        style={StyleSheet.absoluteFill}
-        blurRadius={14}
-        imageStyle={{ opacity: 0.35 }}
-      />
-      <StatusBar style="light" />
-      <View style={styles.logoBadge}>
-        <Text style={styles.logoMark}>HERO · ARC</Text>
+    <LinearGradient colors={['#f3f6ff', '#ffffff']} style={styles.container}>
+      <StatusBar style="dark" />
+      <View style={styles.frame}>
+        <View style={styles.heroIllustration}>
+          <View style={styles.heroCore} />
+          <View style={[styles.sparkle, styles.sparkleLeft]} />
+          <View style={[styles.sparkle, styles.sparkleRight]} />
+          <View style={styles.swordLine} />
+        </View>
+        <View style={styles.copyBlock}>
+          <Text style={styles.tagline}>Hero Arc</Text>
+          <Text style={styles.heading}>This is your training arc.</Text>
+          <Text style={styles.subtitle}>
+            Build habits, complete quests, and level up your real-world stats—one session at a time.
+          </Text>
+        </View>
+        <View style={styles.actions}>
+          <Pressable style={styles.primaryCta} onPress={() => setShowInvite(true)}>
+            <Text style={styles.primaryCtaLabel}>Begin training</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryCta} onPress={() => router.push('/(auth)/auth')}>
+            <Text style={styles.secondaryCtaLabel}>Log in to Hero HQ</Text>
+          </Pressable>
+        </View>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.hero}>AWAKEN</Text>
-        <Text style={styles.subtitle}>Forge your Hero Arc.</Text>
-      </View>
-      <Pressable style={styles.cta} onPress={() => setShowInvite(true)}>
-        <Text style={styles.ctaLabel}>Begin Training ›</Text>
-      </Pressable>
-      <View style={styles.progress} />
       {showInvite && (
         <View style={styles.inviteOverlay}>
           <View style={styles.inviteCard}>
@@ -70,53 +76,96 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 32,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    justifyContent: 'center',
+  },
+  frame: {
+    backgroundColor: '#ffffff',
+    borderRadius: 32,
+    padding: 24,
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 6,
+    minHeight: 640,
     justifyContent: 'space-between',
-    backgroundColor: palette.background,
   },
-  logoBadge: {
-    marginTop: 32,
+  heroIllustration: {
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 260,
   },
-  logoMark: {
-    color: '#d9e6ff',
-    letterSpacing: 4,
-    fontSize: 14,
-    fontWeight: '600',
+  heroCore: {
+    width: 190,
+    height: 190,
+    borderRadius: 40,
+    transform: [{ rotate: '45deg' }],
+    backgroundColor: '#2563eb22',
   },
-  content: {
-    alignItems: 'center',
-    gap: 16,
+  sparkle: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fcd34d40',
   },
-  hero: {
+  sparkleLeft: {
+    top: 35,
+    left: 40,
+  },
+  sparkleRight: {
+    bottom: 40,
+    right: 30,
+  },
+  swordLine: {
+    position: 'absolute',
+    width: 4,
+    height: 180,
+    borderRadius: 2,
+    backgroundColor: '#2563eb33',
+  },
+  copyBlock: {
+    gap: 12,
+  },
+  tagline: {
+    textTransform: 'uppercase',
+    color: palette.textSecondary,
+    letterSpacing: 1.5,
+    fontSize: 12,
+  },
+  heading: {
     color: palette.textPrimary,
-    fontSize: 56,
-    fontWeight: '900',
-    letterSpacing: 3,
+    fontSize: 32,
+    fontWeight: '700',
   },
   subtitle: {
     color: palette.textSecondary,
-    fontSize: 18,
+    fontSize: 16,
+    lineHeight: 22,
   },
-  cta: {
-    backgroundColor: '#fdfdfd',
-    borderRadius: 999,
-    paddingVertical: 18,
+  actions: {
+    gap: 12,
+  },
+  primaryCta: {
+    backgroundColor: palette.neon,
+    borderRadius: 18,
+    paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: palette.neon,
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
   },
-  ctaLabel: {
-    color: '#050505',
+  primaryCtaLabel: {
+    color: '#ffffff',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
   },
-  progress: {
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: '#ffffff33',
-    marginBottom: 8,
+  secondaryCta: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  secondaryCtaLabel: {
+    color: palette.neon,
+    fontSize: 16,
+    fontWeight: '500',
   },
   inviteOverlay: {
     position: 'absolute',
@@ -124,7 +173,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(5, 6, 14, 0.78)',
+    backgroundColor: 'rgba(3, 2, 19, 0.65)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -133,35 +182,33 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 24,
     padding: 24,
-    backgroundColor: '#0b1327',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#3d7bff',
+    borderColor: palette.border,
     gap: 12,
-    shadowColor: '#5fb4ff',
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
   },
   inviteBadge: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#5fb4ff',
+    backgroundColor: palette.neon,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
   },
   inviteBadgeText: {
-    color: '#5fb4ff',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
   },
   inviteTitle: {
     textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: '#e4edff',
+    color: palette.textPrimary,
     fontWeight: '700',
+    fontSize: 18,
   },
   inviteBody: {
     color: palette.textSecondary,
@@ -172,11 +219,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderRadius: 16,
     paddingVertical: 12,
-    backgroundColor: '#5fb4ff',
+    backgroundColor: palette.neon,
   },
   inviteButtonLabel: {
     textAlign: 'center',
-    color: '#050505',
+    color: '#ffffff',
     fontWeight: '700',
     fontSize: 16,
   },

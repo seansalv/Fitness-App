@@ -77,6 +77,24 @@ export const deriveLevelFromXp = (totalXp: number) => {
   return level;
 };
 
+export const getLevelProgressDetail = (totalXp: number) => {
+  let level = 1;
+  let remainingXp = Math.max(totalXp, 0);
+  let threshold = LEVEL_BASE;
+
+  while (remainingXp >= threshold) {
+    remainingXp -= threshold;
+    level += 1;
+    threshold = Math.round(threshold * LEVEL_GROWTH);
+  }
+
+  return {
+    level,
+    xpIntoLevel: remainingXp,
+    xpToLevelUp: threshold,
+  };
+};
+
 export const deriveRankFromXp = (totalXp: number): RankTier => {
   const sorted = [...RANK_THRESHOLDS].sort((a, b) => a.minXp - b.minXp);
   let currentRank: RankTier = 'E';

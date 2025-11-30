@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,7 +14,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient as SvgGradient, Path, Stop } from 'react-native-svg';
-import Slider from '@react-native-community/slider';
+import { ResponsiveSlider } from '@/components/ResponsiveSlider';
 
 import { ONBOARDING_QUESTIONS } from '@/src/config/onboarding';
 import { palette } from '@/src/theme/palette';
@@ -145,7 +146,7 @@ export default function OnboardingScreen() {
           <TextInput
             style={styles.input}
             placeholder={current.placeholder ?? ''}
-            placeholderTextColor="#5f678a"
+            placeholderTextColor="#a0a3b1"
             keyboardType="numeric"
             value={(selected as string) ?? ''}
             onChangeText={(text) => setAnswers((prev) => ({ ...prev, [current.id]: text }))}
@@ -353,14 +354,14 @@ export default function OnboardingScreen() {
       <View style={styles.sliderWrapper}>
         <Text style={styles.frequencyValue}>{value}x</Text>
         <Text style={styles.frequencyCaption}>{value} workouts a week</Text>
-        <Slider
+        <ResponsiveSlider
           style={{ width: '100%', height: 40 }}
           minimumValue={1}
           maximumValue={7}
           step={1}
-          minimumTrackTintColor="#65cfff"
-          maximumTrackTintColor="#1f2742"
-          thumbTintColor="#65cfff"
+          minimumTrackTintColor={palette.neon}
+          maximumTrackTintColor={palette.border}
+          thumbTintColor={palette.neon}
           value={value}
           onValueChange={(val) => setAnswers((prev) => ({ ...prev, [current.id]: { value: Math.round(val) }}))}
         />
@@ -406,7 +407,7 @@ export default function OnboardingScreen() {
           <Switch
             value={reminder}
             onValueChange={(val) => setAnswers((prev) => ({ ...prev, [current.id]: { days, reminder: val } }))}
-            trackColor={{ true: '#65cfff', false: '#1f2640' }}
+          trackColor={{ true: palette.neon, false: palette.border }}
             thumbColor="#ffffff"
           />
         </View>
@@ -505,14 +506,14 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: '#1c2238',
+    backgroundColor: palette.muted,
     marginTop: 16,
     marginBottom: 32,
   },
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#65cfff',
+    backgroundColor: palette.neon,
   },
   content: {
     flexGrow: 1,
@@ -530,13 +531,13 @@ const styles = StyleSheet.create({
   option: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     padding: 18,
-    backgroundColor: '#0a0f20',
+    backgroundColor: '#ffffff',
   },
   optionActive: {
-    borderColor: '#3dd598',
-    backgroundColor: '#0f2b24',
+    borderColor: palette.neon,
+    backgroundColor: '#eef2ff',
   },
   optionRow: {
     flexDirection: 'row',
@@ -558,7 +559,7 @@ const styles = StyleSheet.create({
   },
   optionIcon: {
     fontSize: 20,
-    color: '#9fb4ff',
+    color: palette.neon,
   },
   inputWrapper: {
     marginTop: 12,
@@ -566,19 +567,19 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     paddingVertical: 14,
     paddingHorizontal: 18,
     color: palette.textPrimary,
-    backgroundColor: '#0a0f20',
+    backgroundColor: palette.muted,
     fontSize: 20,
     textAlign: 'center',
   },
   wheelWrapper: {
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     borderRadius: 20,
-    backgroundColor: '#0a0f20',
+    backgroundColor: '#ffffff',
     height: 240,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -596,18 +597,22 @@ const styles = StyleSheet.create({
   unitSwitch: {
     flexDirection: 'row',
     alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: '#1f2640',
+    backgroundColor: palette.muted,
     borderRadius: 999,
-    overflow: 'hidden',
+    padding: 4,
   },
   unitPill: {
     paddingVertical: 8,
     paddingHorizontal: 24,
+    borderRadius: 999,
     backgroundColor: 'transparent',
   },
   unitPillActive: {
-    backgroundColor: '#1a233c',
+    backgroundColor: '#ffffff',
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 2,
   },
   unitLabel: {
     color: palette.textSecondary,
@@ -625,13 +630,14 @@ const styles = StyleSheet.create({
   chip: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
   },
   chipActive: {
-    borderColor: '#3dd598',
-    backgroundColor: '#0f2b24',
+    borderColor: palette.neon,
+    backgroundColor: '#eef2ff',
   },
   chipLabel: {
     color: palette.textSecondary,
@@ -646,7 +652,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   frequencyValue: {
-    color: '#65cfff',
+    color: palette.textPrimary,
     fontSize: 56,
     fontWeight: '800',
     textAlign: 'center',
@@ -675,29 +681,31 @@ const styles = StyleSheet.create({
   dayChip: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     paddingVertical: 10,
     paddingHorizontal: 14,
+    backgroundColor: '#ffffff',
   },
   dayChipActive: {
-    borderColor: '#65cfff',
-    backgroundColor: '#132035',
+    borderColor: palette.neon,
+    backgroundColor: '#eef2ff',
   },
   dayChipLabel: {
     color: palette.textSecondary,
   },
   dayChipLabelActive: {
-    color: '#65cfff',
+    color: palette.neon,
     fontWeight: '700',
   },
   reminderRow: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#ffffff',
   },
   reminderTitle: {
     color: palette.textPrimary,
@@ -714,9 +722,9 @@ const styles = StyleSheet.create({
   summaryCard: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1f2640',
+    borderColor: palette.border,
     padding: 20,
-    backgroundColor: '#0b1222',
+    backgroundColor: '#ffffff',
     gap: 8,
   },
   summaryHeading: {
@@ -745,7 +753,7 @@ const styles = StyleSheet.create({
   bmiScale: {
     height: 12,
     borderRadius: 999,
-    backgroundColor: '#24304c',
+    backgroundColor: palette.muted,
     position: 'relative',
   },
   bmiIndicator: {
@@ -780,7 +788,7 @@ const styles = StyleSheet.create({
     top: -4,
     width: 2,
     height: 20,
-    backgroundColor: '#fff',
+    backgroundColor: palette.textPrimary,
     borderRadius: 999,
     marginLeft: -1,
   },
@@ -792,12 +800,14 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(3,2,19,0.08)',
   },
   weightChartLabel: {
     position: 'absolute',
     top: 10,
     left: 16,
-    color: '#ffb199',
+    color: palette.neon,
     fontWeight: '700',
   },
   weightChartDiff: {
@@ -814,7 +824,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   ctaLabel: {
-    color: '#050505',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -822,7 +832,7 @@ const styles = StyleSheet.create({
     width: '40%',
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#ffffff20',
+    backgroundColor: palette.muted,
     alignSelf: 'center',
     marginTop: 12,
   },
@@ -832,7 +842,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wheelItemActive: {
-    backgroundColor: '#1a233c',
+    backgroundColor: '#eef2ff',
   },
   wheelItemText: {
     color: palette.textSecondary,
@@ -849,9 +859,17 @@ const styles = StyleSheet.create({
     right: 16,
     height: 48,
     borderWidth: 1,
-    borderColor: '#3d7bff',
+    borderColor: palette.neon,
     borderRadius: 12,
     alignSelf: 'center',
+  },
+  webWheelWrapper: {
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
   },
 });
 
@@ -865,14 +883,16 @@ type WheelPickerProps = {
 };
 
 const WheelPicker = ({ values, selectedValue, onChange }: WheelPickerProps) => {
+  const isWebPlatform = Platform.OS === 'web';
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    if (isWebPlatform) return;
     const index = values.indexOf(selectedValue);
     if (index > -1) {
       scrollRef.current?.scrollTo({ y: index * WHEEL_ITEM_HEIGHT, animated: false });
     }
-  }, [selectedValue, values]);
+  }, [isWebPlatform, selectedValue, values]);
 
   const handleMomentum = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const idx = Math.round(event.nativeEvent.contentOffset.y / WHEEL_ITEM_HEIGHT);
@@ -882,6 +902,33 @@ const WheelPicker = ({ values, selectedValue, onChange }: WheelPickerProps) => {
       onChange(value);
     }
   };
+
+  if (isWebPlatform) {
+    return (
+      <View style={styles.webWheelWrapper}>
+        <select
+          value={selectedValue}
+          onChange={(event) => onChange(event.target.value)}
+          style={{
+            width: '100%',
+            border: 'none',
+            outline: 'none',
+            background: 'transparent',
+            fontSize: 32,
+            fontWeight: 600,
+            textAlign: 'center',
+            color: palette.textPrimary,
+          }}
+        >
+          {values.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wheelWrapper}>
@@ -894,6 +941,7 @@ const WheelPicker = ({ values, selectedValue, onChange }: WheelPickerProps) => {
           paddingVertical: ((WHEEL_VISIBLE_ROWS - 1) / 2) * WHEEL_ITEM_HEIGHT,
         }}
         onMomentumScrollEnd={handleMomentum}
+        onScrollEndDrag={handleMomentum}
       >
         {values.map((value) => {
           const active = value === selectedValue;
@@ -953,8 +1001,9 @@ const WeightTrendChart = ({
   targetLabel: string;
   diffLabel: string;
 }) => {
-  const width = 280;
-  const height = 140;
+  const [chartWidth, setChartWidth] = useState(0);
+  const width = Math.max(220, chartWidth || 280);
+  const height = Math.max(140, Math.min(220, width * 0.45));
   const startX = 0;
   const startY = 30;
   const endX = width;
@@ -967,7 +1016,16 @@ const WeightTrendChart = ({
 
   return (
     <View style={{ gap: 12 }}>
-      <LinearGradient colors={['#1c2234', '#0d1424']} style={styles.weightChartContainer}>
+      <LinearGradient
+        colors={['#e0e7ff', '#fef3c7']}
+        style={[styles.weightChartContainer, { minHeight: height + 32 }]}
+        onLayout={(event) => {
+          const usableWidth = event.nativeEvent.layout.width - 32;
+          if (usableWidth > 0 && Math.abs(usableWidth - chartWidth) > 1) {
+            setChartWidth(usableWidth);
+          }
+        }}
+      >
         <Svg width={width} height={height}>
           <Defs>
             <SvgGradient id="weightGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1052,7 +1110,13 @@ const describeDelta = (current: AnswerValue | undefined, target: AnswerValue | u
   return diff > 0 ? `Lose ${diff} kg` : `Gain ${Math.abs(diff)} kg`;
 };
 
-const humanize = (value: string) => (value ? value.replace(/_/g, ' ') : 'Unknown');
+const toTitleCase = (text: string) =>
+  text.replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+const humanize = (value: string) => {
+  if (!value) return 'Unknown';
+  const normalized = value.replace(/_/g, ' ');
+  return toTitleCase(normalized);
+};
 const humanizeExperience = (value: string) => {
   switch (value) {
     case 'beginner':

@@ -23,8 +23,20 @@ export default function TabLayout() {
         tabBarActiveTintColor: palette.neon,
         tabBarInactiveTintColor: palette.textSecondary,
         tabBarStyle: {
-          backgroundColor: palette.surface,
-          borderTopColor: palette.border,
+          backgroundColor: '#ffffff',
+          borderTopColor: 'transparent',
+          marginHorizontal: 16,
+          marginBottom: 16,
+          borderRadius: 24,
+          height: 70,
+          paddingBottom: 8,
+          shadowColor: palette.shadow,
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+        tabBarLabelStyle: {
+          fontWeight: '600',
         },
       }}
     >

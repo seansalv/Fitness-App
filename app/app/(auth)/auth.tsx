@@ -65,59 +65,80 @@ export default function AuthScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <KeyboardAvoidingView
           behavior={Platform.select({ ios: 'padding', android: undefined })}
-          style={styles.stack}
+          style={styles.shell}
         >
-        <Text style={styles.kicker}>Hero Arc</Text>
-          <Text style={styles.title}>Solo-level your real life grind.</Text>
-          <View style={styles.modeSwitch}>
-          <ModeToggle label="Create Hero" active={mode === 'signup'} onPress={() => setMode('signup')} />
-            <ModeToggle label="Sign In" active={mode === 'signin'} onPress={() => setMode('signin')} />
-          </View>
-          <View style={styles.form}>
-          <Label>Registry email</Label>
-          <Input placeholder="you@heroarc.com" keyboardType="email-address" value={email} onChangeText={setEmail} />
+          <View style={styles.card}>
+            <View style={styles.header}>
+              <Text style={styles.kicker}>Hero Arc</Text>
+              <Text style={styles.title}>Solo-level your real life grind.</Text>
+            </View>
 
-            <Label>Secret phrase</Label>
-            <Input placeholder="••••••••" secureTextEntry value={password} onChangeText={setPassword} />
+            <View style={styles.modeSwitch}>
+              <ModeToggle label="Create hero" active={mode === 'signup'} onPress={() => setMode('signup')} />
+              <ModeToggle label="Return to HQ" active={mode === 'signin'} onPress={() => setMode('signin')} />
+            </View>
 
-            {mode === 'signup' && (
-              <>
-              <Label>Hero alias</Label>
-              <Input placeholder="ArcBreaker" value={handle} onChangeText={setHandle} autoCapitalize="none" />
-
-                <Label>Primary goal</Label>
-                <View style={styles.goalGrid}>
-                  {GOALS.map((option) => (
-                    <Pressable
-                      key={option}
-                      onPress={() => setGoal(option)}
-                      style={[styles.goalChip, goal === option && styles.goalChipActive]}
-                    >
-                      <Text style={goal === option ? styles.goalChipActiveText : styles.goalChipText}>{option}</Text>
-                    </Pressable>
-                  ))}
+            <View style={styles.form}>
+              {mode === 'signup' && (
+                <View style={styles.field}>
+                  <Label>Hero alias</Label>
+                  <Input placeholder="ArcBreaker" value={handle} onChangeText={setHandle} autoCapitalize="none" />
                 </View>
-              </>
-            )}
+              )}
+
+              <View style={styles.field}>
+                <Label>Email</Label>
+                <Input
+                  placeholder="hero@example.com"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+
+              <View style={styles.field}>
+                <Label>Password</Label>
+                <Input placeholder="••••••••" secureTextEntry value={password} onChangeText={setPassword} />
+              </View>
+
+              {mode === 'signup' && (
+                <View style={styles.field}>
+                  <Label>Primary goal</Label>
+                  <View style={styles.goalGrid}>
+                    {GOALS.map((option) => (
+                      <Pressable
+                        key={option}
+                        onPress={() => setGoal(option)}
+                        style={[styles.goalChip, goal === option && styles.goalChipActive]}
+                      >
+                        <Text style={goal === option ? styles.goalChipActiveText : styles.goalChipText}>{option}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <Pressable
+              style={[styles.cta, disableSubmit && styles.ctaDisabled]}
+              disabled={disableSubmit}
+              onPress={() => authMutation.mutate()}
+            >
+              <Text style={styles.ctaLabel}>
+                {authMutation.isPending ? 'Syncing with HQ...' : mode === 'signup' ? 'Create hero' : 'Sign in'}
+              </Text>
+            </Pressable>
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <Pressable
-          style={[styles.cta, disableSubmit && styles.ctaDisabled]}
-          disabled={disableSubmit}
-          onPress={() => authMutation.mutate()}
-        >
-          <Text style={styles.ctaLabel}>
-            {authMutation.isPending ? 'Linking comms...' : mode === 'signup' ? 'Join Hero Arc' : 'Return to HQ'}
-          </Text>
-        </Pressable>
-
-        {activated && (
-          <SystemCard title="Hero profile live!" subtitle="Rank: E-Rank • Level 1 • XP: 0" accent={palette.neonSoft}>
-            <Text style={styles.cardText}>Welcome to your training arc. Tap “Return to HQ” once the portal opens.</Text>
-          </SystemCard>
-        )}
+          {activated && (
+            <SystemCard title="Hero profile live!" subtitle="Rank: E-Rank • Level 1 • XP: 0" accent={palette.neonSoft}>
+              <Text style={styles.cardText}>
+                Welcome to your training arc. Tap “Return to HQ” once the portal opens.
+              </Text>
+            </SystemCard>
+          )}
         </KeyboardAvoidingView>
       </ScrollView>
       {authMutation.isPending && (
@@ -135,7 +156,7 @@ const Label = ({ children }: { children: string }) => <Text style={styles.label}
 
 const Input = (props: TextInputProps) => (
   <TextInput
-    placeholderTextColor="#5f678a"
+    placeholderTextColor="#a0a3b1"
     style={styles.input}
     autoCapitalize="none"
     autoCorrect={false}
@@ -165,13 +186,26 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
   },
-  stack: {
+  shell: {
     gap: 16,
   },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 32,
+    padding: 24,
+    gap: 16,
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  header: {
+    gap: 4,
+  },
   kicker: {
-    color: palette.neonSoft,
+    color: palette.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     fontSize: 12,
   },
   title: {
@@ -181,19 +215,23 @@ const styles = StyleSheet.create({
   },
   modeSwitch: {
     flexDirection: 'row',
-    gap: 12,
+    backgroundColor: palette.muted,
+    padding: 4,
+    borderRadius: 16,
+    gap: 4,
   },
   mode: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: 999,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   modeActive: {
-    borderColor: palette.neon,
-    backgroundColor: '#1a1f38',
+    backgroundColor: '#ffffff',
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 2,
   },
   modeLabel: {
     color: palette.textSecondary,
@@ -201,24 +239,26 @@ const styles = StyleSheet.create({
   },
   modeLabelActive: {
     color: palette.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   form: {
-    gap: 8,
-    marginTop: 8,
+    gap: 12,
+  },
+  field: {
+    gap: 6,
   },
   label: {
     color: palette.textSecondary,
-    fontSize: 13,
+    fontSize: 14,
   },
   input: {
     borderWidth: 1,
     borderColor: palette.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     color: palette.textPrimary,
-    backgroundColor: palette.surface,
+    backgroundColor: palette.muted,
     fontSize: 16,
   },
   goalGrid: {
@@ -232,10 +272,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
   },
   goalChipActive: {
     borderColor: palette.neon,
-    backgroundColor: '#211c3f',
+    backgroundColor: '#eef2ff',
   },
   goalChipText: {
     color: palette.textSecondary,
@@ -249,20 +290,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 16,
     backgroundColor: palette.neon,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
     shadowColor: palette.neon,
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
   },
   ctaDisabled: {
-    opacity: 0.5,
+    opacity: 0.6,
   },
   ctaLabel: {
-    color: '#050505',
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: '600',
   },
   error: {
     color: palette.danger,
@@ -277,14 +317,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(5, 6, 14, 0.92)',
+    backgroundColor: 'rgba(3, 2, 19, 0.72)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
     padding: 24,
   },
   loadingTitle: {
-    color: palette.neon,
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
     textTransform: 'uppercase',

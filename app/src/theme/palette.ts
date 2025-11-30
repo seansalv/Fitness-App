@@ -1,14 +1,17 @@
 export const palette = {
-  background: '#05060e',
-  surface: '#0c1020',
-  card: '#11162a',
-  border: '#231b55',
-  neon: '#9a7bff',
-  neonSoft: '#6ddcff',
-  textPrimary: '#f7f5ff',
-  textSecondary: '#9ba5d9',
-  danger: '#ff6b81',
-  success: '#41f0b5',
+  background: '#f5f6f9',
+  surface: '#ffffff',
+  card: '#ffffff',
+  accent: '#e9ebef',
+  border: 'rgba(3, 2, 19, 0.08)',
+  neon: '#2563eb',
+  neonSoft: '#7ea6ff',
+  textPrimary: '#030213',
+  textSecondary: '#717182',
+  danger: '#d4183d',
+  success: '#2cb178',
+  muted: '#ececf0',
+  shadow: 'rgba(3, 2, 19, 0.08)',
 };
 
 export const typography = {

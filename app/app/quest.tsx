@@ -123,7 +123,7 @@ export default function QuestScreen() {
           onChangeText={setDuration}
           keyboardType="numeric"
           placeholder="30"
-          placeholderTextColor="#636e95"
+          placeholderTextColor="#a0a3b1"
         />
 
         <Pressable
@@ -192,13 +192,13 @@ const styles = StyleSheet.create({
   },
   choiceActive: {
     borderColor: palette.neon,
-    backgroundColor: '#1a1f36',
+    backgroundColor: '#eef2ff',
   },
   choiceLabel: {
     color: palette.textSecondary,
   },
   choiceLabelActive: {
-    color: palette.textPrimary,
+    color: palette.neon,
     fontWeight: '700',
   },
   input: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     color: palette.textPrimary,
-    backgroundColor: palette.surface,
+    backgroundColor: palette.muted,
     fontSize: 16,
   },
   submit: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitLabel: {
-    color: '#050505',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -232,10 +232,11 @@ const styles = StyleSheet.create({
   backButton: {
     marginTop: 12,
     borderWidth: 1,
-    borderColor: palette.neon,
+    borderColor: palette.border,
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
+    backgroundColor: '#ffffff',
   },
   backButtonLabel: {
     color: palette.neon,

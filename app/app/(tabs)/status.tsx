@@ -67,7 +67,7 @@ export default function StatusScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Status Screen</Text>
+      <Text style={styles.title}>Status</Text>
       <Text style={styles.subtitle}>Goal: {profile?.goal ?? GOALS[0]}</Text>
 
       <View style={styles.metrics}>
@@ -90,7 +90,7 @@ export default function StatusScreen() {
       </SystemCard>
 
       <Pressable style={[styles.reminderButton, reminderArmed && styles.reminderActive]} onPress={handleReminder}>
-        <Text style={styles.reminderLabel}>
+        <Text style={[styles.reminderLabel, reminderArmed && styles.reminderLabelActive]}>
           {reminderArmed ? 'Disable daily reminder' : 'Schedule daily reminder'}
         </Text>
       </Pressable>
@@ -138,7 +138,11 @@ const styles = StyleSheet.create({
     borderColor: palette.border,
     borderRadius: 16,
     padding: 16,
-    backgroundColor: palette.surface,
+    backgroundColor: '#ffffff',
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
   },
   metricLabel: {
     color: palette.textSecondary,
@@ -157,18 +161,23 @@ const styles = StyleSheet.create({
   },
   reminderButton: {
     borderWidth: 1,
-    borderColor: palette.neon,
+    borderColor: palette.border,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
+    backgroundColor: '#ffffff',
   },
   reminderActive: {
-    backgroundColor: '#191d32',
+    backgroundColor: palette.neon,
+    borderColor: palette.neon,
   },
   reminderLabel: {
     color: palette.textPrimary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  reminderLabelActive: {
+    color: '#ffffff',
   },
   signOut: {
     padding: 14,
@@ -176,6 +185,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.border,
     alignItems: 'center',
+    backgroundColor: '#ffffff',
   },
   signOutLabel: {
     color: palette.textSecondary,

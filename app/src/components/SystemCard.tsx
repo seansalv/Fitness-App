@@ -10,8 +10,8 @@ type Props = {
   children?: ReactNode;
 };
 
-export const SystemCard = ({ title, subtitle, accent = palette.neon, children }: Props) => (
-  <View style={[styles.card, { borderColor: accent }]}>
+export const SystemCard = ({ title, subtitle, accent, children }: Props) => (
+  <View style={[styles.card, accent ? { borderColor: accent } : null]}>
     {title && <Text style={styles.title}>{title}</Text>}
     {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     {children}
@@ -21,13 +21,13 @@ export const SystemCard = ({ title, subtitle, accent = palette.neon, children }:
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderColor: palette.neon,
+    borderColor: palette.border,
     padding: 16,
     borderRadius: 16,
-    backgroundColor: palette.surface,
-    shadowColor: palette.neon,
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    backgroundColor: '#ffffff',
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     gap: 8,
   },
   title: {

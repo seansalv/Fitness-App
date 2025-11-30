@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   itemActive: {
     borderColor: palette.neon,
-    backgroundColor: '#181f38',
+    backgroundColor: '#eef2ff',
   },
   label: {
     color: palette.textSecondary,
