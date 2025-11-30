@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Sparkles, Sword } from 'lucide-react-native';
 import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { LoadingState } from '@/src/components/LoadingState';
 import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
@@ -22,22 +23,48 @@ export default function Index() {
   }
 
   return (
-    <LinearGradient colors={['#f3f6ff', '#ffffff']} style={styles.container}>
+    <LinearGradient colors={['#eff6ff', '#ffffff']} style={styles.container}>
       <StatusBar style="dark" />
-      <View style={styles.frame}>
-        <View style={styles.heroIllustration}>
-          <View style={styles.heroCore} />
-          <View style={[styles.sparkle, styles.sparkleLeft]} />
-          <View style={[styles.sparkle, styles.sparkleRight]} />
-          <View style={styles.swordLine} />
+      <View style={styles.content}>
+        {/* Hero Illustration Area */}
+        <View style={styles.illustrationContainer}>
+          <View style={styles.illustrationWrapper}>
+            {/* Central rotated gradient box */}
+            <View style={styles.heroCore}>
+              <LinearGradient
+                colors={['#60a5fa', '#2563eb']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroCoreGradient}
+              />
+            </View>
+            
+            {/* Top left sparkle */}
+            <View style={styles.sparkleTopLeft}>
+              <Sparkles size={32} color="#3b82f6" strokeWidth={2.5} />
+            </View>
+            
+            {/* Bottom right sparkle */}
+            <View style={styles.sparkleBottomRight}>
+              <Sparkles size={24} color="#f59e0b" strokeWidth={2.5} />
+            </View>
+            
+            {/* Center sword */}
+            <View style={styles.swordContainer}>
+              <Sword size={96} color="#2563eb" strokeWidth={2.5} />
+            </View>
+          </View>
         </View>
+
+        {/* Content */}
         <View style={styles.copyBlock}>
-          <Text style={styles.tagline}>Hero Arc</Text>
           <Text style={styles.heading}>This is your training arc.</Text>
           <Text style={styles.subtitle}>
             Build habits, complete quests, and level up your real-world stats—one session at a time.
           </Text>
         </View>
+
+        {/* Actions */}
         <View style={styles.actions}>
           <Pressable style={styles.primaryCta} onPress={() => setShowInvite(true)}>
             <Text style={styles.primaryCtaLabel}>Begin training</Text>
@@ -76,94 +103,106 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    justifyContent: 'center',
   },
-  frame: {
-    backgroundColor: '#ffffff',
-    borderRadius: 32,
-    padding: 24,
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 6,
-    minHeight: 640,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
     justifyContent: 'space-between',
   },
-  heroIllustration: {
+  illustrationContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 260,
+  },
+  illustrationWrapper: {
+    width: 256,
+    height: 256,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroCore: {
-    width: 190,
-    height: 190,
-    borderRadius: 40,
-    transform: [{ rotate: '45deg' }],
-    backgroundColor: '#2563eb22',
-  },
-  sparkle: {
-    position: 'absolute',
-    width: 48,
-    height: 48,
+    width: 160,
+    height: 192,
     borderRadius: 24,
-    backgroundColor: '#fcd34d40',
-  },
-  sparkleLeft: {
-    top: 35,
-    left: 40,
-  },
-  sparkleRight: {
-    bottom: 40,
-    right: 30,
-  },
-  swordLine: {
+    transform: [{ rotate: '45deg' }],
+    overflow: 'hidden',
+    opacity: 0.1,
+    zIndex: 1,
     position: 'absolute',
-    width: 4,
-    height: 180,
-    borderRadius: 2,
-    backgroundColor: '#2563eb33',
+    top: '50%',
+    left: '50%',
+    marginTop: -96,
+    marginLeft: -80,
+  },
+  heroCoreGradient: {
+    width: '100%',
+    height: '100%',
+  },
+  sparkleTopLeft: {
+    position: 'absolute',
+    top: 48,
+    left: 32,
+    zIndex: 20,
+    opacity: 0.3,
+  },
+  sparkleBottomRight: {
+    position: 'absolute',
+    bottom: 64,
+    right: 48,
+    zIndex: 20,
+    opacity: 0.4,
+  },
+  swordContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 15,
+    opacity: 0.2,
   },
   copyBlock: {
+    alignItems: 'center',
     gap: 12,
-  },
-  tagline: {
-    textTransform: 'uppercase',
-    color: palette.textSecondary,
-    letterSpacing: 1.5,
-    fontSize: 12,
+    paddingBottom: 24,
   },
   heading: {
-    color: palette.textPrimary,
-    fontSize: 32,
+    color: '#111827',
+    fontSize: 36,
     fontWeight: '700',
+    textAlign: 'center',
   },
   subtitle: {
-    color: palette.textSecondary,
+    color: '#6b7280',
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
+    textAlign: 'center',
   },
   actions: {
     gap: 12,
+    paddingBottom: 32,
   },
   primaryCta: {
-    backgroundColor: palette.neon,
-    borderRadius: 18,
+    backgroundColor: '#2563eb',
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
   primaryCtaLabel: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   secondaryCta: {
-    paddingVertical: 12,
+    paddingVertical: 8,
     alignItems: 'center',
   },
   secondaryCtaLabel: {
-    color: palette.neon,
+    color: '#2563eb',
     fontSize: 16,
     fontWeight: '500',
   },

@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { LoadingState } from '@/src/components/LoadingState';
 import { useProfile } from '@/src/hooks/useProfile';
@@ -15,8 +17,7 @@ dayjs.extend(relativeTime);
 
 const UPCOMING_TEMPLATE = [
   { day: 'Tomorrow', sessions: ['Strength', 'Cardio'] },
-  { day: 'Friday', sessions: ['Mobility'] },
-  { day: 'Saturday', sessions: ['Zone 2', 'Core'] },
+  { day: 'Friday', sessions: ['Flexibility'] },
 ];
 
 export default function HomeScreen() {
@@ -41,292 +42,355 @@ export default function HomeScreen() {
   const streakDays = stats?.streak_days ?? 0;
   const weeklyQuestCount = workouts.length;
 
+  const questIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+    gym: 'barbell-outline',
+    cardio: 'heart-outline',
+    study: 'book-outline',
+    mindfulness: 'sparkles-outline',
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.heroCard}>
-        <View style={styles.heroHeader}>
-          <Text style={styles.greeting}>Welcome back, {profile?.handle ?? 'Hero'}</Text>
-          <Text style={styles.subheading}>Ready for day {Math.max(streakDays, 1)} of your arc</Text>
-        </View>
-
-        <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeLabel}>Level</Text>
-            <Text style={styles.badgeValue}>{stats?.level ?? xpDetail.level}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.greeting}>Welcome back, {profile?.handle ?? 'Hero'}</Text>
+            <Text style={styles.subheading}>Day {Math.max(streakDays, 1)} of your arc</Text>
           </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeLabel}>Rank</Text>
-            <Text style={styles.badgeValue}>{stats?.rank ?? 'E'}</Text>
-          </View>
-        </View>
-
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>XP Progress</Text>
-          <Text style={styles.progressValue}>
-            {Math.round(xpDetail.xpIntoLevel)} / {xpDetail.xpToLevelUp}
-          </Text>
-        </View>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${xpPercent * 100}%` }]} />
-        </View>
-
-        <View style={styles.heroStats}>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{streakDays}</Text>
-            <Text style={styles.statLabel}>Day streak</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{weeklyQuestCount}</Text>
-            <Text style={styles.statLabel}>Quests this week</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{stats?.total_xp ?? 0}</Text>
-            <Text style={styles.statLabel}>Total XP</Text>
-          </View>
-        </View>
-
-        <Pressable style={styles.primaryCta} onPress={() => router.push('/quest')}>
-          <Text style={styles.primaryCtaLabel}>Start quest</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent quests</Text>
-          <Text style={styles.sectionMeta}>
-            {loadingQuests ? 'Syncing...' : `${Math.min(workouts.length, 5)} shown`}
-          </Text>
-        </View>
-        <View style={styles.questList}>
-          {loadingQuests && <Text style={styles.empty}>Fetching quest log...</Text>}
-          {!loadingQuests && workouts.length === 0 && (
-            <Text style={styles.empty}>No quests logged yet. Start one now.</Text>
-          )}
-          {workouts.slice(0, 5).map((quest) => (
-            <View key={quest.id} style={styles.questCard}>
-              <View style={styles.questInfo}>
-                <Text style={styles.questTitle}>{QUEST_TYPES[quest.type]}</Text>
-                <Text style={styles.questMeta}>
-                  {INTENSITY_LABELS[quest.intensity]} • {quest.duration_minutes} min
-                </Text>
-                <Text style={styles.questTime}>{dayjs(quest.timestamp).fromNow()}</Text>
-              </View>
-              <Text style={styles.questXp}>+{quest.xp_awarded} XP</Text>
+          <View style={styles.badgeContainer}>
+            <View style={styles.badge}>
+              <Ionicons name="shield-outline" size={20} color={palette.neon} />
+              <Text style={styles.badgeText}>
+                LV {stats?.level ?? xpDetail.level} · Rank {stats?.rank ?? 'E'}
+              </Text>
             </View>
-          ))}
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming training</Text>
-        <View style={styles.scheduleCard}>
-          {UPCOMING_TEMPLATE.map((entry) => (
-            <View key={entry.day} style={styles.scheduleRow}>
-              <Text style={styles.scheduleDay}>{entry.day}</Text>
-              <View style={styles.sessionChipRow}>
-                {entry.sessions.map((session) => (
-                  <View key={session} style={styles.sessionChip}>
-                    <Text style={styles.sessionChipText}>{session}</Text>
+        {/* XP & Streak Section */}
+        <View style={styles.xpSection}>
+          <View style={styles.xpHeader}>
+            <Text style={styles.xpLabel}>XP Progress</Text>
+            <Text style={styles.xpValue}>
+              {Math.round(xpDetail.xpIntoLevel)} / {xpDetail.xpToLevelUp}
+            </Text>
+          </View>
+          <View style={styles.progressBar}>
+            <LinearGradient
+              colors={['#3b82f6', '#2563eb']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressFill, { width: `${xpPercent * 100}%` }]}
+            />
+          </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Ionicons name="flame" size={20} color="#f59e0b" />
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>{streakDays} day streak</Text>
+                <Text style={styles.statSubtext}>Keep it up!</Text>
+              </View>
+            </View>
+            <View style={styles.statItemRight}>
+              <Text style={styles.statValue}>{weeklyQuestCount} / {profile?.weekly_goal ?? 3}</Text>
+              <Text style={styles.statSubtext}>this week</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Today's Quests */}
+        <View style={styles.questsSection}>
+          <Text style={styles.sectionTitle}>Today's quests</Text>
+          <View style={styles.questList}>
+            {loadingQuests && <Text style={styles.empty}>Loading quests...</Text>}
+            {!loadingQuests && workouts.length === 0 && (
+              <View style={styles.questCard}>
+                <View style={styles.questInfo}>
+                  <View style={styles.questIconContainer}>
+                    <Ionicons name="barbell-outline" size={20} color={palette.neon} />
                   </View>
-                ))}
+                  <View style={styles.questDetails}>
+                    <Text style={styles.questTitle}>Morning strength session</Text>
+                    <View style={styles.questMetaRow}>
+                      <Text style={styles.questMeta}>Strength</Text>
+                      <Text style={styles.questXp}>+50 XP</Text>
+                    </View>
+                  </View>
+                </View>
+                <Pressable style={styles.logButton} onPress={() => router.push('/quest')}>
+                  <Text style={styles.logButtonText}>Log</Text>
+                </Pressable>
               </View>
-            </View>
-          ))}
+            )}
+            {!loadingQuests && workouts.slice(0, 3).map((quest) => (
+              <View key={quest.id} style={styles.questCard}>
+                <View style={styles.questInfo}>
+                  <View style={styles.questIconContainer}>
+                    <Ionicons
+                      name={questIcons[quest.type] || 'barbell-outline'}
+                      size={20}
+                      color={palette.neon}
+                    />
+                  </View>
+                  <View style={styles.questDetails}>
+                    <Text style={styles.questTitle}>{QUEST_TYPES[quest.type]}</Text>
+                    <View style={styles.questMetaRow}>
+                      <Text style={styles.questMeta}>{INTENSITY_LABELS[quest.intensity]}</Text>
+                      <Text style={styles.questXp}>+{quest.xp_awarded} XP</Text>
+                    </View>
+                  </View>
+                </View>
+                <Pressable style={styles.logButton} onPress={() => router.push('/quest')}>
+                  <Text style={styles.logButtonText}>Log</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
 
-      <View style={styles.tipCard}>
-        <Text style={styles.tipLabel}>Hero tip</Text>
-        <Text style={styles.tipCopy}>
-          Consistency beats intensity. Even a short check-in counts toward your arc—protect the streak.
-        </Text>
-      </View>
-    </ScrollView>
+        {/* Upcoming Training */}
+        <View style={styles.upcomingSection}>
+          <Text style={styles.sectionTitle}>Upcoming training</Text>
+          <View style={styles.scheduleCard}>
+            {UPCOMING_TEMPLATE.map((entry, idx) => (
+              <View key={entry.day} style={[styles.scheduleRow, idx < UPCOMING_TEMPLATE.length - 1 && styles.scheduleRowBorder]}>
+                <Text style={styles.scheduleDay}>{entry.day}</Text>
+                <View style={styles.sessionChipRow}>
+                  {entry.sessions.map((session) => (
+                    <View key={session} style={styles.sessionChip}>
+                      <Text style={styles.sessionChipText}>{session}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Hero Tip */}
+        <View style={styles.tipCard}>
+          <Ionicons name="flash-outline" size={20} color={palette.neon} style={styles.tipIcon} />
+          <View style={styles.tipContent}>
+            <Text style={styles.tipLabel}>Hero tip</Text>
+            <Text style={styles.tipCopy}>
+              Consistency beats intensity. Even a short session counts toward your arc.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: '#f9fafb',
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    padding: 20,
-    gap: 16,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
-  heroCard: {
+  header: {
     backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 20,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: palette.border,
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
   },
-  heroHeader: {
-    gap: 4,
+  headerContent: {
+    marginBottom: 12,
   },
   greeting: {
-    color: palette.textPrimary,
-    fontSize: 22,
+    color: '#111827',
+    fontSize: 24,
     fontWeight: '600',
+    marginBottom: 4,
   },
   subheading: {
-    color: palette.textSecondary,
+    color: '#6b7280',
     fontSize: 14,
   },
-  badgeRow: {
+  badgeContainer: {
     flexDirection: 'row',
     gap: 12,
   },
   badge: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: palette.muted,
-    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
-  badgeLabel: {
+  badgeText: {
+    color: '#1d4ed8',
+    fontSize: 12,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    fontSize: 10,
-    letterSpacing: 1,
-    color: palette.textSecondary,
+    letterSpacing: 0.5,
   },
-  badgeValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: palette.textPrimary,
+  xpSection: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    gap: 16,
   },
-  progressHeader: {
+  xpHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  progressLabel: {
-    color: palette.textSecondary,
+  xpLabel: {
+    color: '#6b7280',
     fontSize: 13,
   },
-  progressValue: {
-    color: palette.textPrimary,
+  xpValue: {
+    color: '#111827',
     fontSize: 13,
     fontWeight: '600',
   },
   progressBar: {
-    height: 10,
-    backgroundColor: palette.muted,
+    height: 8,
+    backgroundColor: '#f3f4f6',
     borderRadius: 999,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: palette.neon,
   },
-  heroStats: {
+  statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  stat: {
-    alignItems: 'flex-start',
-    flex: 1,
-  },
-  statValue: {
-    color: palette.textPrimary,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  statLabel: {
-    color: palette.textSecondary,
-    fontSize: 12,
-  },
-  primaryCta: {
-    marginTop: 8,
-    backgroundColor: palette.neon,
-    borderRadius: 18,
-    paddingVertical: 14,
     alignItems: 'center',
   },
-  primaryCtaLabel: {
-    color: '#ffffff',
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statItemRight: {
+    alignItems: 'flex-end',
+  },
+  statContent: {
+    gap: 2,
+  },
+  statValue: {
+    color: '#111827',
     fontSize: 16,
     fontWeight: '600',
   },
-  section: {
-    gap: 8,
+  statSubtext: {
+    color: '#6b7280',
+    fontSize: 13,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  questsSection: {
+    padding: 24,
+    gap: 16,
   },
   sectionTitle: {
-    color: palette.textPrimary,
+    color: '#111827',
     fontSize: 18,
     fontWeight: '600',
   },
-  sectionMeta: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
   questList: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: palette.border,
-    backgroundColor: '#ffffff',
+    gap: 12,
   },
   questCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: palette.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   questInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
     flex: 1,
-    gap: 2,
+  },
+  questIconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questDetails: {
+    flex: 1,
+    gap: 4,
   },
   questTitle: {
-    color: palette.textPrimary,
+    color: '#111827',
     fontSize: 16,
     fontWeight: '600',
   },
-  questMeta: {
-    color: palette.textSecondary,
-    fontSize: 12,
+  questMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  questTime: {
-    color: palette.textSecondary,
+  questMeta: {
+    color: '#6b7280',
     fontSize: 12,
   },
   questXp: {
-    color: palette.neon,
-    fontWeight: '700',
+    color: '#d97706',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  logButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  logButtonText: {
+    color: '#ffffff',
     fontSize: 14,
+    fontWeight: '600',
   },
   empty: {
-    color: palette.textSecondary,
+    color: '#6b7280',
     padding: 16,
     textAlign: 'center',
   },
+  upcomingSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    gap: 16,
+  },
   scheduleCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: palette.border,
     backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
   },
   scheduleRow: {
     padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: palette.border,
     gap: 8,
   },
+  scheduleRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#f3f4f6',
+  },
   scheduleDay: {
-    color: palette.textPrimary,
-    fontWeight: '600',
+    color: '#6b7280',
+    fontSize: 13,
+    marginBottom: 4,
   },
   sessionChipRow: {
     flexDirection: 'row',
@@ -336,30 +400,41 @@ const styles = StyleSheet.create({
   sessionChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: palette.muted,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
   },
   sessionChipText: {
-    color: palette.textPrimary,
-    fontSize: 12,
+    color: '#374151',
+    fontSize: 13,
   },
   tipCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: palette.border,
+    marginHorizontal: 24,
+    marginBottom: 24,
     backgroundColor: '#ffffff',
-    padding: 20,
-    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    padding: 24,
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: '#eff6ff',
+  },
+  tipIcon: {
+    marginTop: 2,
+  },
+  tipContent: {
+    flex: 1,
+    gap: 4,
   },
   tipLabel: {
-    textTransform: 'uppercase',
-    color: palette.textSecondary,
-    fontSize: 12,
-    letterSpacing: 1,
+    color: '#111827',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   tipCopy: {
-    color: palette.textPrimary,
-    fontSize: 14,
-    lineHeight: 20,
+    color: '#6b7280',
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

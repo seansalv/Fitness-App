@@ -54,6 +54,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons name="stats-chart-outline" size={20} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={20} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

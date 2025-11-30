@@ -1,194 +1,314 @@
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { WeeklySummaryList, WeeklyDatum } from '@/src/components/WeeklySummaryList';
 import { LoadingState } from '@/src/components/LoadingState';
-import { SystemCard } from '@/src/components/SystemCard';
-import { GOALS } from '@/src/config/progression';
-import { useProfile } from '@/src/hooks/useProfile';
 import { useUserStats } from '@/src/hooks/useUserStats';
 import { useQuestCount, useRecentWorkouts } from '@/src/hooks/useWorkouts';
-import { signOut } from '@/src/services/api';
-import { cancelReminders, scheduleDailyReminder } from '@/src/services/reminders';
 import { useSupabaseSession } from '@/src/providers/SupabaseSessionProvider';
-import { palette } from '@/src/theme/palette';
 
 export default function StatusScreen() {
   const { session } = useSupabaseSession();
   const userId = session?.user?.id;
   const statsQuery = useUserStats(userId);
-  const profileQuery = useProfile(userId);
   const workoutsQuery = useRecentWorkouts(userId);
   const questCountQuery = useQuestCount(userId);
-  const [reminderArmed, setReminderArmed] = useState(false);
 
-  const weeklyStats: WeeklyDatum[] = useMemo(() => {
-    const workouts = workoutsQuery.data ?? [];
-    const today = dayjs().startOf('day');
-    return Array.from({ length: 7 }).map((_, idx) => {
-      const day = today.subtract(6 - idx, 'day');
-      const count = workouts.filter((workout) =>
-        dayjs(workout.timestamp).isSame(day, 'day'),
-      ).length;
-      return {
-        key: day.toISOString(),
-        label: day.format('ddd'),
-        count,
-      };
-    });
-  }, [workoutsQuery.data]);
-
-  if (statsQuery.isLoading || profileQuery.isLoading) {
+  if (statsQuery.isLoading) {
     return <LoadingState label="Pulling status report..." />;
   }
 
   const stats = statsQuery.data;
-  const profile = profileQuery.data;
   const questCount = questCountQuery.data ?? 0;
 
-  const handleReminder = async () => {
-    try {
-      if (reminderArmed) {
-        await cancelReminders();
-        setReminderArmed(false);
-      } else {
-        await scheduleDailyReminder();
-        setReminderArmed(true);
-      }
-    } catch (error) {
-      Alert.alert('Reminder', (error as Error).message);
-    }
-  };
+  const weeklyData = useMemo(() => {
+    const workouts = workoutsQuery.data ?? [];
+    const today = dayjs().startOf('day');
+    return Array.from({ length: 7 }).map((_, idx) => {
+      const day = today.subtract(6 - idx, 'day');
+      const count = workouts.filter((workout) => dayjs(workout.timestamp).isSame(day, 'day')).length;
+      return {
+        day: day.format('ddd').charAt(0),
+        quests: count,
+      };
+    });
+  }, [workoutsQuery.data]);
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const maxQuests = Math.max(...weeklyData.map((d) => d.quests), 1);
+
+  const missions = [
+    { id: 1, title: 'Complete 30 quests', progress: Math.min(questCount, 30), total: 30 },
+    { id: 2, title: 'Maintain 14-day streak', progress: Math.min(stats?.streak_days ?? 0, 14), total: 14 },
+    { id: 3, title: 'Reach Level 10', progress: stats?.level ?? 1, total: 10 },
+  ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Status</Text>
-      <Text style={styles.subtitle}>Goal: {profile?.goal ?? GOALS[0]}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Status</Text>
+          <Text style={styles.subtitle}>Track your progress</Text>
+        </View>
 
-      <View style={styles.metrics}>
-        <Metric title="Rank" value={stats?.rank ?? 'E'} />
-        <Metric title="Level" value={stats?.level?.toString() ?? '1'} />
-        <Metric title="XP" value={stats?.total_xp?.toString() ?? '0'} />
-        <Metric title="Streak" value={`${stats?.streak_days ?? 0}d`} />
-      </View>
+        {/* Weekly Chart */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>This week</Text>
+            <View style={styles.chartContainer}>
+              {weeklyData.map((data, i) => (
+                <View key={i} style={styles.chartBarWrapper}>
+                  <View style={styles.chartBarContainer}>
+                    {data.quests > 0 && (
+                      <LinearGradient
+                        colors={['#3b82f6', '#60a5fa']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 0, y: 0 }}
+                        style={[
+                          styles.chartBar,
+                          { height: data.quests > 0 ? `${(data.quests / maxQuests) * 100}%` : 4 },
+                        ]}
+                      />
+                    )}
+                    {data.quests === 0 && <View style={[styles.chartBar, styles.chartBarEmpty]} />}
+                  </View>
+                  <Text style={styles.chartLabel}>{data.day}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
 
-      <SystemCard title="Past 7 days" subtitle="Quest count per day">
-        <WeeklySummaryList data={weeklyStats} />
-      </SystemCard>
+        {/* Streak Stats */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Streak stats</Text>
+            <View style={styles.statsGrid}>
+              <StatCard
+                label="Current"
+                value={`${stats?.streak_days ?? 0}`}
+                icon={<Ionicons name="flame" size={24} color="#f59e0b" />}
+              />
+              <StatCard
+                label="Best"
+                value="12"
+                icon={<Ionicons name="trophy" size={24} color="#2563eb" />}
+              />
+              <StatCard
+                label="Total"
+                value={`${questCount}`}
+                icon={<Ionicons name="target" size={24} color="#6b7280" />}
+              />
+            </View>
+          </View>
+        </View>
 
-      <SystemCard title="Quest archive" subtitle={`${questCount} quests completed in total`}>
-        <Text style={styles.cardBody}>
-          {stats?.last_activity_date
-            ? `Last activity: ${dayjs(stats.last_activity_date).format('MMM D, YYYY')}`
-            : 'No activity tracked yet.'}
-        </Text>
-      </SystemCard>
+        {/* Reminders */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Reminders</Text>
+            <View style={styles.remindersList}>
+              {['Morning training (8:00 AM)', 'Midday check-in (12:00 PM)', 'Evening log (8:00 PM)'].map(
+                (reminder, index) => (
+                  <View key={reminder} style={styles.reminderRow}>
+                    <Text style={styles.reminderText}>{reminder}</Text>
+                    <Switch
+                      value={index < 2}
+                      onValueChange={() => {}}
+                      trackColor={{ false: '#d1d5db', true: '#2563eb' }}
+                      thumbColor="#ffffff"
+                    />
+                  </View>
+                ),
+              )}
+            </View>
+          </View>
+        </View>
 
-      <Pressable style={[styles.reminderButton, reminderArmed && styles.reminderActive]} onPress={handleReminder}>
-        <Text style={[styles.reminderLabel, reminderArmed && styles.reminderLabelActive]}>
-          {reminderArmed ? 'Disable daily reminder' : 'Schedule daily reminder'}
-        </Text>
-      </Pressable>
-
-      <Pressable style={styles.signOut} onPress={handleSignOut}>
-        <Text style={styles.signOutLabel}>Sign out</Text>
-      </Pressable>
-    </ScrollView>
+        {/* Hero Missions */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Hero missions</Text>
+            <View style={styles.missionsList}>
+              {missions.map((mission) => (
+                <View key={mission.id} style={styles.missionItem}>
+                  <View style={styles.missionHeader}>
+                    <Text style={styles.missionTitle}>{mission.title}</Text>
+                    <Text style={styles.missionProgress}>
+                      {mission.progress}/{mission.total}
+                    </Text>
+                  </View>
+                  <View style={styles.missionBar}>
+                    <LinearGradient
+                      colors={['#3b82f6', '#2563eb']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={[styles.missionBarFill, { width: `${(mission.progress / mission.total) * 100}%` }]}
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
-const Metric = ({ title, value }: { title: string; value: string }) => (
-  <View style={styles.metric}>
-    <Text style={styles.metricLabel}>{title}</Text>
-    <Text style={styles.metricValue}>{value}</Text>
+const StatCard = ({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) => (
+  <View style={styles.statCard}>
+    <View style={styles.statIconContainer}>{icon}</View>
+    <Text style={styles.statValue}>{value}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: '#f9fafb',
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    padding: 20,
-    gap: 16,
-    paddingBottom: 80,
+    paddingBottom: 100,
+  },
+  header: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
   },
   title: {
-    color: palette.textPrimary,
+    color: '#111827',
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '600',
+    marginBottom: 4,
   },
   subtitle: {
-    color: palette.textSecondary,
+    color: '#6b7280',
+    fontSize: 14,
   },
-  metrics: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  section: {
+    padding: 24,
+    paddingBottom: 0,
   },
-  metric: {
-    width: '47%',
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: 16,
-    padding: 16,
+  card: {
     backgroundColor: '#ffffff',
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  metricLabel: {
-    color: palette.textSecondary,
-    fontSize: 12,
-    textTransform: 'uppercase',
-  },
-  metricValue: {
-    color: palette.textPrimary,
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  cardBody: {
-    color: palette.textSecondary,
-    marginTop: 8,
-  },
-  reminderButton: {
-    borderWidth: 1,
-    borderColor: palette.border,
     borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 24,
+    gap: 16,
   },
-  reminderActive: {
-    backgroundColor: palette.neon,
-    borderColor: palette.neon,
-  },
-  reminderLabel: {
-    color: palette.textPrimary,
-    fontSize: 16,
+  cardTitle: {
+    color: '#111827',
+    fontSize: 18,
     fontWeight: '600',
   },
-  reminderLabelActive: {
-    color: '#ffffff',
+  chartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 128,
+    gap: 8,
   },
-  signOut: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: palette.border,
+  chartBarWrapper: {
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    gap: 8,
   },
-  signOutLabel: {
-    color: palette.textSecondary,
+  chartBarContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'flex-end',
+  },
+  chartBar: {
+    width: '100%',
+    borderRadius: 4,
+    minHeight: 4,
+  },
+  chartBarEmpty: {
+    backgroundColor: '#e5e7eb',
+    height: 4,
+  },
+  chartLabel: {
+    color: '#6b7280',
+    fontSize: 12,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: {
+    color: '#111827',
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  statLabel: {
+    color: '#6b7280',
+    fontSize: 12,
+  },
+  remindersList: {
+    gap: 12,
+  },
+  reminderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  reminderText: {
+    color: '#111827',
+    fontSize: 16,
+  },
+  missionsList: {
+    gap: 16,
+  },
+  missionItem: {
+    gap: 8,
+  },
+  missionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  missionTitle: {
+    color: '#111827',
+    fontSize: 16,
+  },
+  missionProgress: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+  missionBar: {
+    height: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  missionBarFill: {
+    height: '100%',
+    borderRadius: 999,
   },
 });
 
