@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 4,
+    zIndex: 1000,
   },
   title: {
     color: palette.neon,
